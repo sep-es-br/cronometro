@@ -2003,7 +2003,8 @@ a.title-topic.destacado{
     margin: auto;
     width: 463px;
     font-size: 20px;
-    height: 65px;
+    height: 100px;
+    padding-top: 20px;
 }
 
 .label-ctrl-tempo {
