@@ -1,0 +1,90 @@
+﻿<!--
+/**
+ * Template Name: Cronometro
+ *
+ * @package WordPress
+ * @subpackage SEP
+ * @since SEP 1.0
+ */
+-->
+<html lang="pt-BR"  itemscope itemtype="http://schema.org/Article" prefix="og: http://ogp.me/ns#">
+  
+<title>CRONÔMETRO</title>
+<!-- <title></title>-->
+<head>
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel='stylesheet' id='bootstrap-3-3-4-css'  href='css/bootstrap/3.3.4/bootstrap.min.css' type='text/css' media='all' />
+    <link rel='stylesheet' id='font-style-css'  href='fonts/nunito/css/nunito.css' type='text/css' media='all' />
+
+    <link rel='stylesheet' id='parent-style-css'  href='css/parentstyle.css' type='text/css' media='all' /-->
+
+    <!--link rel='stylesheet' id='moesia-bootstrap-css'  href='<!--?php echo content_url(); ?>/themes/moesia/css/bootstrap/bootstrap.min.css?ver=1' type='text/css' media='all' /-->
+    <link rel='stylesheet' id='style-css'  href='css/style.css' type='text/css' media='all' />
+    <link rel='stylesheet' id='moesia-font-awesome-css'  href='fonts/fontawesome/font-awesome.min.css?ver=4.1.11' type='text/css' media='all' />
+	
+	<script type="text/javascript" src="js/jquery/1.11.2/jquery-1.11.2.min.js"></script>
+	<script type="text/javascript" src="js/jquery/ui/1.11.4/jquery-ui.js"></script>
+	<script type="text/javascript" src="js/jquery/dateFormat/jquery-dateFormat.min.js"></script>
+	<script type="text/javascript" src="js/cronometro.js"></script>
+	
+</head>
+
+<body>
+    <!--?php 
+    /*******************************************************************/
+    // HEADER
+    /*******************************************************************/
+    ?-->
+    
+    <!--div class="header">
+        <div class="logo-orcamento">
+            <!--img src="images/logoOrcamento2018-branco.png"/-->
+        <!--/div>
+        <div class="titulo">
+            <div class="texto">Cronômetro</div>
+        </div>
+        <div class="div-logo-brasao">
+            <img class="img-logo-brasao" src="images/Brasao_SEP_Branca.png"/>
+        </div>
+    </div-->
+    
+    
+    <!--?php 
+    /*******************************************************************/
+    // CONTROLES DO CRONÔMETRO
+    /*******************************************************************/
+    -->
+	<div class="relogio">
+		<div class="linha-ctrl-tempo">
+			<div class="ctrl-tempo">
+				<div class="label-ctrl-tempo">Tempo: </div>
+				<div class="div-ctrl-tempo" >
+					<input required class="input-ctrl-tempo" type="number" min="0" max="999" value="00" id="ctrtempomin" step="1" >
+					 : 
+					<input required class="input-ctrl-tempo" type="number" min="0" max="59" value="00" id="ctrtemposec" step="1" > 
+				</div>
+				<div class="crono-buttons">
+					<div class="crono-ctrl-button">
+						<input type="button" id="startButton" value="Iniciar"/>
+					</div>
+					<div id="divStopButton" class="crono-ctrl-button" style="display:none;">
+						<input type="button" id="stopButton" value="Parar"/>
+					</div>
+					<div id="divContinueButton" class="crono-ctrl-button" style="display:none;">
+						<input type="button" id="continueButton" value="Continuar"/>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="linha-tempo">
+			<div class="div-tempo" >
+				<input class="input-tempo" type="text" value="00:00" id="tempo" step="1" > 
+			</div>
+		</div>
+	</div>
+
+</body>	
+</html>

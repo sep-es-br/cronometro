@@ -1,0 +1,271 @@
+/**
+*     
+* PPA em Rede - ES
+*
+* Scripts para implementar o dinamismo e atualizações do painel de resultados
+* da audiência presencial
+*
+* This script is applied to the
+* structure and the main components
+* about PPA em Rede - ES
+*
+* @project PPA em Rede - ES
+* @version 1.0 22-04-2015
+* @since 1.0
+* @author Vagner Cordeiro <vagner.cordeiro@planejamento.es.gov.br>
+* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+*
+*/
+
+$(function () {
+    var $paginas = $('.pagina');
+
+    var delayIn = 2000;
+    var delayOut = 1000;
+    var delayAnimations = 1000;
+    var pageInterval = 5000;
+    var ajaxInterval = 3000;
+
+    var trocarPagina = function($paginas){
+        var $paginaAtiva = $paginas.filter(':visible');
+        var $proximaPagina = ($paginaAtiva.attr('id') == "pg-ultima") 
+                                ? $('#pg01')
+                                : $paginaAtiva.next('div.pagina');
+        
+        // transições                    
+        switch ($paginaAtiva.attr('id')){
+            
+            case 'pg-ultima': // da última para a primeira página
+                console.log($paginaAtiva.attr('id'),$proximaPagina.attr('id'));
+                // Header
+                $('div.header').find('div.titulo').animate(
+                {   
+                    width: "100%",
+                    fontSize: "62px",
+                    marginTop: "37px"
+                },
+                delayAnimations
+                );
+                $('div.header').find('div.titulo').find('div.texto').animate(
+                    {   
+                        width: "100%",
+                    },
+                    delayAnimations
+                );
+
+                $('div.header').find('div.logo-orcamento').animate(
+                    {   
+                        marginTop: "33px",
+                    },
+                    delayAnimations
+                );
+                $('div.header').find('div.placares').fadeOut(delayOut);
+                $('div.titulo-01').fadeOut(delayOut);
+                    
+                // troca a página inteira
+                $paginaAtiva.fadeOut(delayOut, function(){
+                    $proximaPagina.fadeIn(delayIn);
+                });
+                
+                break;
+            
+            case 'pg01':
+                console.log($paginaAtiva.attr('id'),$proximaPagina.attr('id'));
+
+                // Transições do Header
+                $('div.header').find('div.titulo').animate(
+                    {   
+                        width: "233px",
+                        fontSize: "20px",
+                        marginTop: "63px"
+                    },
+                    1000
+                );
+                $('div.header').find('div.titulo').find('div.texto').animate(
+                    {   
+                        width: "233px",
+                    },
+                    1000
+                );
+                $('div.header').find('div.logo-orcamento').animate(
+                    {   
+                        marginTop: "18px"
+                    },
+                    1000
+                );
+                $('div.header').find('div.placares').fadeIn(1000);
+                $('div.titulo-01').fadeIn(1000);
+
+                // troca a página inteira
+                $paginaAtiva.fadeOut(delayOut, function(){
+                    $proximaPagina.fadeIn(delayIn);
+                });
+                
+                //window.clearInterval(temporizadorPaginas );
+                break;
+                
+            default:
+                console.log('default:', $paginaAtiva.attr('id'),$proximaPagina.attr('id'));
+                // troca a página inteira
+                $paginaAtiva.find('div.corpo').fadeOut(delayOut, function(){
+                    $proximaPagina.find('div.corpo').hide();
+                    $paginaAtiva.hide();
+                    $proximaPagina.show();
+                    $proximaPagina.find('div.corpo').fadeIn(delayIn, function(){
+                        $paginaAtiva.find('div.corpo').show();
+                    });
+                });
+        }
+    };
+    
+    var getAllPanelDataAJAX = function() {
+        var data = {
+            'action': 'get_panels_data',
+            'ap_slug': ajax_object.ap_slug
+        };
+
+        $.ajax({
+            type: "POST",
+            url: ajax_object.ajax_url,
+            data: data,
+            //dataType: 'JSON',
+            success: function(retorno) {
+                var objRetorno = $.parseJSON(retorno);
+                updatePlacar(parseInt(objRetorno.municipios_presentes), 
+                            parseInt(objRetorno.participantes), 
+                            parseInt(objRetorno.destaques),
+                            parseInt(objRetorno.propostas));
+                updateParticipacaoMunicipios(objRetorno.municipios,
+                                             objRetorno.outras_microrregioes);
+                updateDesafiosMaisDestacados (objRetorno.top3_desafios);
+                updateDestaquesPorAreasResultado (objRetorno.areas_resultado);
+                updatePropostas (objRetorno.random2propostas);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert(textStatus);
+            } 
+        });
+    };
+    
+    var updatePlacar = function(totalMunicipios, 
+                            totalParticipantes,
+                            totalDestaques,
+                            totalPropostas){
+        
+        $('div.total-de-municipios-presentes').html(totalMunicipios);
+        $('div.total-de-participantes').html(totalParticipantes);
+        $('div.total-de-Destaques').html(totalDestaques);
+        $('div.total-de-Propostas').html(totalPropostas);
+        
+    }
+    var updateParticipacaoMunicipios = function(municipios, outras_microrregioes ){
+        var $municipioAtual;
+        var $valorAtual;
+        var iValorAtual;
+        municipios.forEach(function(municipio, indice){
+            $municipioAtual = $('div.municipio[data-municipio-indice="' 
+                                + indice 
+                                + '"]');
+            $valorAtual = $municipioAtual.find('.valor');
+            iValorAtual = parseInt($valorAtual.html());
+            // Só faremos alguma coisa se temos um novo valor
+            if (iValorAtual != municipio[1])
+            {
+                // Se abriu o placar do município (valor atual é zero),
+                // temos que exibir em cor e negrito
+                if (iValorAtual == 0)
+                {
+                    // adicionar efeito
+                    $municipioAtual.addClass('comparticipacao');
+                }
+                $valorAtual.html(municipio[1]);
+            }
+        });
+        // Atualiza linha de municípios de outras microrregiões
+        $('div.municipio.outras-microrregioes')
+                .find('.valor')
+                .html(outras_microrregioes);
+    }
+    
+    var updateDestaquesPorAreasResultado = function(areasResultado){
+        var $valorAtual;
+        var $percentAtual;
+        var $arAtual;
+        var iValorAtual;
+        var dPercentAtual;
+        var $nomeAtual;
+        areasResultado.forEach(function(ar, indice){
+            $arAtual = $('div.area-resultado[data-ar-indice="' 
+                                + indice 
+                                + '"]');
+            $valorAtual = $arAtual.find('div.valor');
+            $percentAtual = $arAtual.find('div.percent');
+            $nomeAtual = $arAtual.find('div.barra');
+            $tdAtual = $arAtual.find('td.td-area-resultado');
+            
+            $nomeAtual.html(ar.tema);
+            $valorAtual.html(ar.quantidade);
+            $percentAtual.html(ar.percent);
+            $tdAtual
+                .css('background', 
+                    'linear-gradient(90deg, #FDD2DA ' 
+                +   ar.percent
+                +   '%, #FFFFFF 0%');
+        });
+    }
+    
+    var updateDesafiosMaisDestacados = function(desafios){
+        var $desafioAtual;
+        var $valorAtual;
+        var $percentAtual;
+        var $nomeAtual;
+        var $tdAtual;
+        desafios.forEach(function(desafio, indice){
+            $desafioAtual = $('div.desafio[data-desafio-indice="' 
+                                + indice 
+                                + '"]');
+            $valorAtual = $desafioAtual.find('div.valor');
+            $percentAtual = $desafioAtual.find('div.percent');
+            $nomeAtual = $desafioAtual.find('div.barra');
+            $tdAtual = $desafioAtual.find('td.td-desafio');
+            
+            $nomeAtual.html(desafio.desafio);
+            $valorAtual.html(desafio.quantidade);
+            $percentAtual.html(desafio.percent);
+            $tdAtual
+                .css('background', 
+                    'linear-gradient(90deg, #FDD2DA ' 
+                +   desafio.percent
+                +   '%, #FFFFFF 0%');
+        });
+    }
+    
+    var updatePropostas = function(random2propostas){
+        // não posso atualizar se a página estiver visível
+        if ($('div.pagina-2-propostas-aleatoreas').is(":visible")){
+            return 0;
+        }
+
+        var $propostaAtual;
+        var $textoAtual;
+        var $desafioAtual;
+        var $microrregiaoAtual;
+        random2propostas.forEach(function(proposta, indice){
+            $propostaAtual = $('div.proposta[data-proposta-indice="' 
+                                + indice 
+                                + '"]');
+            $textoAtual = $propostaAtual.find('td.td-texto-proposta');
+            $desafioAtual = $propostaAtual.find('span.titulo-desafio');
+            $microrregiaoAtual = $propostaAtual.find('span.titulo-microrregiao');
+            
+            $textoAtual.html(proposta.proposta);
+            $desafioAtual.html(proposta.desafio);
+            $microrregiaoAtual.html(proposta.microrregiao);
+        });
+    }
+
+    
+    var temporizadorPaginas = setInterval(trocarPagina, pageInterval, $paginas);
+    var temporizadorUpdates = setInterval(getAllPanelDataAJAX, ajaxInterval);    
+    
+});

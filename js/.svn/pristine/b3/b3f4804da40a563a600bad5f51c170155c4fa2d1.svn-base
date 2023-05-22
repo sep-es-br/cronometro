@@ -1,0 +1,220 @@
+/**
+*     
+* PPA em Rede - ES
+*
+* Script Voter Ajax for PPA em Rede - ES
+*
+* This script is applied to the
+* structure and the main components
+* about PPA em Rede - ES
+*
+* @project PPA em Rede - ES
+* @version 1.0 22-04-2015
+* @since 1.0
+* @author Lucas Matias Caetano <lucas.caetano@prodest.es.gov.br>
+* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+*
+*/
+jQuery(document).ready( function($) {
+
+    $(".wpv_voting_custom").click( function(){
+        var currentobj = $(this);
+        var wpv_votewidget = currentobj.parents(".wpv_votebtn").parents(".wpv_votebtncon").parents(".wpv_votewidget");
+        var wpv_container = wpv_votewidget.parents(".list-topic");
+        var wpv_modal = wpv_votewidget.parents(".wpv_postvote").parents(".modal-body");
+        
+        var wpv_votebtn = currentobj.parents(".wpv_votebtn");
+        var pID = currentobj.children(".postID").val();
+        var uID = currentobj.children(".userID").val();
+        var aID = currentobj.children(".authorID").val();
+
+        /*Display loading image*/
+          wpv_votewidget.children(".wpv_votecount").children(".loadingimage").css("visibility", "visible");
+          wpv_votewidget.children(".wpv_votecount").children(".loadingimage").css("display", "inline-block");
+          wpv_votewidget.children(".wpv_votecount").children(".wpv_vcount").css("display", "none");
+
+          wpv_container.find(".topic-started-by").css("display", "none");
+          wpv_container.find(".loadingimage").css("visibility", "visible");
+          wpv_container.find(".loadingimage").css("display", "inline-block");
+        /*Do voting*/
+        $.post(
+            moesiaChildAjax.ajaxurl,
+            {
+              action: 'wpv-submit',
+              postID: pID,
+              userID: uID,
+              authorID: aID,
+              wpv_nonce: moesiaChildAjax.wpv_nonce
+            },
+            function(response){
+                
+                response = parseInt(response);
+                if(response>=0 && response<=9){
+                    if(response === 1){
+                        text_response = "pessoa destacou esse desafio";
+                        text_destaque = "Destaque";                        
+                    }         
+                    else{
+                        text_response = "pessoas destacaram esse desafio";
+                        text_destaque = "Destaques";                         
+                    }
+                    wpv_votewidget.children(".wpv_votecount").children(".text-numeros-apoio").html(text_response);
+                    wpv_votewidget.children(".wpv_votecount").children(".text-numeros-apoio").css("display", "inline-block");
+                    
+                    // Temporario
+                    wpv_votewidget.children(".wpv_votecount").children(".text-numeros-apoio").hide();
+                    
+                    wpv_container.find(".name-apoiadores").html(text_destaque);                    
+                    response = "0"+response; 
+                                       
+                }
+
+                
+                
+                
+                currentobj.css("display", "none");
+                //wpv_votebtn.children(".wpv_voted_icon").css("display", "inline-block");
+                wpv_votewidget.find(".wpv_voted_icon").css("display", "inline-block");
+                wpv_votebtn.children(".wpv_votebtn_txt").each(function(){
+					$(this).css("display", "none");
+				});
+				
+                
+                wpv_votewidget.children(".wpv_votecount").children(".loadingimage").css("visibility", "hidden");
+                wpv_votewidget.children(".wpv_votecount").children(".loadingimage").remove(); 
+                wpv_container.find(".loadingimage").css("visibility", "hidden");
+                wpv_container.find(".loadingimage").remove();
+                
+                wpv_votewidget.children(".wpv_votecount").children(".wpv_vcount").html(response);               
+                wpv_votewidget.children(".wpv_votecount").children(".wpv_vcount").css("display", "inline-block");
+                    // Temporario
+                wpv_votewidget.children(".wpv_votecount").children(".wpv_vcount").hide();
+                
+                wpv_container.find(".topic-started-by").html(response);
+                wpv_container.find(".topic-started-by").css("display", "inline-block");
+                
+				wpv_container.find(".btn-modal").html("Nova Proposta");
+				wpv_container.find(".btn-modal").removeClass("btn-apoiar");
+				wpv_container.find(".btn-modal").addClass("btn-second");
+				
+                wpv_modal.find(".bbp-reply-form").css("display", "block");
+				
+				var htmlStatus = "<div class=\"alert alert-success\" role=\"alert\">";
+				htmlStatus += "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">";
+				htmlStatus += "<span aria-hidden=\"true\">&times;</span>";
+				htmlStatus += "</button>";				
+				htmlStatus += "<strong style=\"font-size: 17px;\">Desafio destacado! Obrigado.</strong></br>";
+				htmlStatus += "</div>";
+                var statusdiv=wpv_modal.find('.comment-status');
+				statusdiv.html(htmlStatus);	
+                currentobj.remove();
+                
+                /*Do updating widget*/
+                $.post(
+                    moesiaChildAjax.ajaxurl,
+                    {
+                      action: 'wpv-top-widget',
+                      postID: pID,
+                      userID: uID,
+                      authorID: aID,
+                      wpv_nonce: moesiaChildAjax.wpv_nonce
+                    },
+                    function(response){
+                        if($(".widget_wpv_top_voted_widget"))
+                            $(".widget_wpv_top_voted_widget").children(".wpvtopvoted").html(response);
+                    }
+                );
+            }
+        );
+        return false;
+    });
+
+    function Liga($elemClicado) {
+        var $myDiv = $elemClicado.closest("div.divSwitch");
+        var desafio_id = $myDiv.data("target");
+        var user_id = $myDiv.data("user-id");
+        var $textoDesafio = $("a.title-topic[data-desafio-id='" + desafio_id + "']");
+        var $votouDiv = $('.swOn[data-target="' + desafio_id + '"]');
+        $myDiv.hide();
+        $votouDiv.show();
+        $textoDesafio.addClass("destacado");
+        $textoDesafio.removeClass("normal");
+    }
+
+    function Desliga($elemClicado) {
+        var $myDiv = $elemClicado.closest("div.divSwitch");
+        var desafio_id = $myDiv.data("target");
+        var user_id = $myDiv.data("user-id");
+        var $textoDesafio = $("a.title-topic[data-desafio-id='" + desafio_id + "']");
+        var $btnDiv = $(".swOff[data-target='" + desafio_id + "']");
+        $myDiv.hide();
+        $btnDiv.show();
+        $textoDesafio.addClass("normal");
+        $textoDesafio.removeClass("destacado");
+    }    
+    
+    $("a.title-topic").click(function(){
+        var $elemClicado = $(this);
+        var $row = $elemClicado.closest("div.row");
+        var $switch = ($elemClicado.hasClass("normal")) 
+                        ? $row.find(".on-off-btn.off")
+                        : $row.find(".on-off-btn.on");
+        $switch.click();
+    });
+    $(".on-off-btn.off").click( function(){
+        var $elemClicado = $(this);
+        var $myDiv = $elemClicado.closest("div.divSwitch");
+        var desafio_id = $myDiv.data("target");
+        var user_id = $myDiv.data("user-id");
+        var author_id = $myDiv.data("author-id");
+        var $loader = $myDiv.find(".loader");
+        
+        $loader.show();
+        $.post(
+            moesiaChildAjax.ajaxurl,
+            {
+              action: 'wpv-submit',
+              postID: desafio_id,
+              userID: user_id,
+              authorID: author_id,
+              wpv_nonce: moesiaChildAjax.wpv_nonce
+            },
+            function(response){
+                if ( !isNaN(parseInt(response)))
+                {
+                    Liga($elemClicado);            
+                }
+                $loader.hide();
+            }
+        )
+    });
+    
+  
+    $(".on-off-btn.on").click(function(){
+        var $elemClicado = $(this);
+        var $myDiv = $elemClicado.closest("div.divSwitch");
+        var desafio_id = $myDiv.data("target");
+        var user_id = $myDiv.data("user-id");
+        var $loader = $myDiv.find(".loader");
+        
+        $loader.show();
+        
+        $.post(
+            moesiaChildAjax.ajaxurl,
+            {
+              action: 'reset-vote',
+              desafio_id: desafio_id,
+              user_id: user_id
+            },
+            function(response){
+                if ( response == "")
+                {
+                    Desliga($elemClicado);            
+                }
+                $loader.hide();
+            }
+        )
+       
+       
+    });
+});

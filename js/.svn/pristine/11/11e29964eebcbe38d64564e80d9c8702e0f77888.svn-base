@@ -1,0 +1,180 @@
+/**
+*     
+* PPA em Rede - ES
+*
+* Script Ajax Comments for PPA Online - ES
+*
+* This script is applied to the
+* structure and the main components
+* about PPA em Rede - ES
+*
+* @project PPA em Rede - ES
+* @version 1.0 22-04-2015
+* @since 1.0
+* @author Lucas Matias Caetano <lucas.caetano@prodest.es.gov.br>
+* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+*
+*/
+
+jQuery('document').ready(function($){
+
+
+	$('.form-comment')
+            .each(function()
+            {
+		var commentform=$(this); // find the comment form
+		var container_commentform = $(this).parents(".bbp-reply-form");
+		var suggestions = container_commentform.find(".suggestions");
+		
+		container_commentform.prepend('<div class="comment-status" ></div>'); // add info panel before the form to provide feedback or errors
+		var statusdiv=container_commentform.find('.comment-status'); // define the info panel
+		suggestions.prepend('<div class="suggestions-status" ></div>'); 
+		var suggestions_status=suggestions.find('.suggestions-status');
+		
+		commentform.submit(function(){
+			//serialize and store form data in a variable
+			var formdata =commentform.serialize();
+			//Add a status message
+			statusdiv.html('');
+			//Extract action URL from commentform
+			var formurl=commentform.attr('action');
+			//Post Form with data
+			var conteudo_textarea = commentform.find('textarea[name=bbp_reply_content]').val();
+			var sugestao = conteudo_textarea.trim();
+			
+                        var contribuicao_textarea = commentform.find('textarea[name=bbp_reply_contribuicao]').val();
+                        var contribuicao = contribuicao_textarea.trim();
+                        
+                        var desafio_id = +commentform.data('desafio-id');
+                        
+                        var replyData = {
+                            'action': 'cria_proposta',
+                            'desafioID': desafio_id,
+                            'sugestao': sugestao,
+                            'contribuicao': contribuicao
+                        };
+                        
+			
+			if(sugestao == ''){
+			
+				commentform.find(".status-sugestao").css({'color':'red','margin-bottom' : '10px'});
+				commentform.find(".status-sugestao").html('A proposta não pode ser vazia.');
+			}
+			else{
+				commentform.find(".status-sugestao").html('');
+				commentform.find(".status-sugestao").css({'margin-bottom' : '0px'});
+				var htmlProgress = "<div class=\"progress\" style=\"margin-top: 15px;  height: 28px;\">";
+				htmlProgress += "<div class=\"progress-bar\" role=\"progressbar\" aria-valuenow=\"60\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 60%; font-size: 15px;line-height: 28px;\">";
+				htmlProgress += "Enviando...";
+				htmlProgress += "</div></div>";
+				statusdiv.html(htmlProgress);
+                                $.ajax({
+					type: 'post',
+					url: ajax_object.ajax_url,
+					data: replyData,
+					error: function(XMLHttpRequest, textStatus, errorThrown){
+						var htmlStatus = "<div class=\"alert alert-danger\" style=\"margin-top: 15px;\" role=\"alert\">";
+						htmlStatus += "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">";
+						htmlStatus += "<span aria-hidden=\"true\">&times;</span>";
+						htmlStatus += "</button>";
+						htmlStatus += "<strong>Ocorreu um erro.</strong> Desculpe-nos o transtorno, tente enviar sua proposta novamente mais tarde.";
+						htmlStatus += "</div>";								
+						statusdiv.html(htmlStatus);							
+					},
+					success: function(data, textStatus){
+						if(data == "success" || textStatus == "success"){
+
+							var htmlStatus = "<div class=\"alert alert-success alert-success-process\" role=\"alert\">";
+							htmlStatus += "<strong>Proposta enviada, obrigado por participar!</strong></br>Com sua contribuição vamos construir um Espírito Santo ainda melhor.";
+							htmlStatus += "</div>";
+							htmlStatus += "<div class='compartilhar' title='Compartilhar na minha rede social' data-dismiss='modal' aria-label='Close'>";
+							htmlStatus += "<a>Compartilhar</a>";
+							htmlStatus += "</div>";
+							statusdiv.html(htmlStatus);	
+							//alert(data);
+							
+							if(suggestions.has("ul.list-suggestions").length > 0){
+								//suggestions.find("ul.list-suggestions").remove();
+								//commentform.find(".collapse-button").remove();
+								getCommentsByAjax();
+								//var container_form = wpv_votewidget.parents(".list-topic")
+								
+							}
+							commentform.find('textarea[name=bbp_reply_content]').val('');
+                                                        commentform.find('textarea[name=bbp_reply_contribuicao]').val('');
+							
+							commentform.addClass("ocult");
+							suggestions.addClass("ocult");
+							
+							var htmlCloseBtn = "";
+							htmlCloseBtn += "<div class=\"btn-fechar\" style=\"text-align:center;\"><button type=\"button\" class=\"welcome-button button btn-apoiar\" title=\"Fechar\" data-dismiss=\"modal\" aria-label=\"Close\">";
+							htmlCloseBtn += "<i class=\"fa fa-times-circle\" style=\"margin-right: 10px;\"></i><span class=\"vote-btn-text\">Fechar</span>";
+							htmlCloseBtn += "</button></div>";
+							
+							$(htmlCloseBtn).insertAfter( statusdiv );
+							
+						}
+						else{
+							var htmlStatus = "<div class=\"alert alert-danger\" style=\"margin-top: 15px;\" role=\"alert\">";
+							htmlStatus += "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">";
+							htmlStatus += "<span aria-hidden=\"true\">&times;</span>";
+							htmlStatus += "</button>";
+							htmlStatus += "<strong>Ocorreu um erro.</strong> Desculpe-nos o transtorno, tente enviar sua proposta novamente mais tarde.";
+							htmlStatus += "</div>";								
+							statusdiv.html(htmlStatus);
+							//commentform.find('textarea[name=bbp_reply_content]').val('');
+						}
+					}
+				});				
+				
+				
+				
+				
+			}
+									
+			return false;
+		});
+		
+		commentform.find(".collapse-button").click(
+				getCommentsByAjax()
+		);
+		
+		function getCommentsByAjax(){
+		
+			var btnCollapse = commentform.find(".collapse-button");
+			var postID = btnCollapse.data("id");	
+			var postTypeReply = btnCollapse.data("type-reply");
+			var postTypeTestimonials = btnCollapse.data("type-testimonials");			
+			
+			$.ajax({
+				type: 'post',
+				url: ajaxCommentsData.ajaxurl,
+				data: {
+					'action': 'get_comments_bbpress',
+					'post_parent': postID,
+					'post_type_reply': postTypeReply,
+					'post_type_testimonials': postTypeTestimonials
+				},
+				error: function(XMLHttpRequest, textStatus, errorThrown){
+					var htmlStatus = "<div class=\"alert alert-danger\" style=\"margin-top: 15px;\" role=\"alert\">";
+					htmlStatus += "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">";
+					htmlStatus += "<span aria-hidden=\"true\">&times;</span>";
+					htmlStatus += "</button>";
+					htmlStatus += "<strong>Ocorreu um erro.</strong> Desculpe-nos o transtorno, tente listar as propostas novamente mais tarde.";
+					htmlStatus += "</div>";								
+					suggestions_status.html(htmlStatus);					
+					
+				},
+				success: function(response){						
+					suggestions.html(response);	
+				}
+			});	
+			return false;
+		
+		}
+
+		
+	});
+
+
+});

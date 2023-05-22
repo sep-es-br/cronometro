@@ -1,0 +1,35 @@
+/**
+*     
+* PPA em Rede - ES
+*
+* Script for PPA em Rede - ES
+*
+* This script is applied to the
+* structure and the main components
+* about PPA em Rede - ES
+*
+* @project PPA em Rede - ES
+* @version 1.0 2015-3-02
+* @since 1.0
+* @author Lucas Matias Caetano <lucas.caetano@prodest.es.gov.br>
+* @used http://orcamento.es.gov.br/
+* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+*
+*/
+
++function ($) {
+
+
+/*========================================================
+* Select Auto Complete
+========================================================== */
+$(function () {
+	
+	$('#combobox').selectToAutocomplete();
+	
+});
+
+
+	
+
+}(jQuery);

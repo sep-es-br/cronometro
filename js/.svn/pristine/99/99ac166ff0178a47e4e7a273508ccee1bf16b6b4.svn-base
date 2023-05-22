@@ -1,0 +1,423 @@
+/**
+*     
+* PPA em Rede - ES
+*
+* Scripts para implementar o dinamismo e atualizações do painel de resultados
+* da audiência presencial
+*
+* This script is applied to the
+* structure and the main components
+* about PPA em Rede - ES
+*
+* @project PPA em Rede - ES
+* @version 1.0 22-04-2015
+* @since 1.0
+* @author Vagner Cordeiro <vagner.cordeiro@planejamento.es.gov.br>
+* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+*
+*/
+
+$(function () {
+    var $paginas = $('.pagina');
+
+    var delayIn = 2000;
+    var delayOut = 1000;
+    var delayAnimations = 1000;
+    var pageInterval = 30000;
+    var ajaxInterval = 5000;
+    var ajaxRequestPending = false;
+
+    var trocarPagina = function($paginas){
+        var $paginaAtiva = $paginas.filter(':visible');
+        var $proximaPagina = ($paginaAtiva.attr('id') == "pg-ultima") 
+                                ? $('#pg01')
+                                : $paginaAtiva.next('div.pagina');
+        
+        // transições                    
+        switch ($paginaAtiva.attr('id')){
+            
+            case 'pg-ultima': // da última para a primeira página
+                // Header
+                $('div.header').find('div.titulo').animate(
+                {   
+                    width: "100%",
+                    fontSize: "62px",
+                    marginTop: "6px",
+                },
+                delayAnimations
+                );
+                $('div.header').find('div.titulo').find('div.texto').animate(
+                    {   
+                        width: "100%",
+                        //color: "#e73279",
+                        //textShadow: "2px 0 0 #fff, -2px 0 8px #fff, 0 2px 8px #fff, 0 -2px 8px #fff, 1px 1px 8px #fff, -1px -1px 8px #fff, 1px -1px 8px #fff, -1px 1px 8px #fff",
+                    },
+                    delayAnimations
+                );
+
+                $('div.header').find('div.logo-orcamento').animate(
+                    {   
+                        marginTop: "33px",
+                    },
+                    delayAnimations
+                );
+                $('div.header').find('div.placares').fadeOut(delayOut);
+                $('div.titulo-01').fadeOut(delayOut);
+                    
+                // troca a página inteira
+                $paginaAtiva.fadeOut(delayOut, function(){
+                    $proximaPagina.fadeIn(delayIn);
+                });
+                break;
+            
+            case 'pg01':
+                // Transições do Header
+                $('div.header').find('div.titulo').animate(
+                    {   
+                        width: "233px",
+                        fontSize: "20px",
+                        marginTop: "63px",
+                     },
+                    1000
+                );
+                $('div.header').find('div.titulo').find('div.texto').animate(
+                    {   
+                        width: "233px",
+                        //color: "#fff"
+                    },
+                    1000
+                );
+                $('div.header').find('div.logo-orcamento').animate(
+                    {   
+                        marginTop: "18px"
+                    },
+                    1000
+                );
+                $('div.header').find('div.placares').fadeIn(1000);
+                $('div.titulo-01').fadeIn(1000);
+
+                // troca a página inteira
+                $paginaAtiva.fadeOut(delayOut, function(){
+                    $proximaPagina.fadeIn(delayIn);
+                });
+                
+                break;
+                
+            default:
+                // troca a página inteira
+                $paginaAtiva.find('div.corpo').fadeOut(delayOut, function(){
+                    $proximaPagina.find('div.corpo').hide();
+                    $paginaAtiva.hide();
+                    $proximaPagina.show();
+                    $proximaPagina.find('div.corpo').fadeIn(delayIn, function(){
+                        $paginaAtiva.find('div.corpo').show();
+                    });
+                });
+        }
+    };
+    
+    var getAllPanelDataAJAX = function() {
+        var data = {
+            'action': 'get_panels_data',
+            'ap_slug': ajax_object.ap_slug
+        };
+        
+        if (ajaxRequestPending)
+        {
+            console.log('Requisição AJAX descartada. Ainda aguardando a anterior.');
+            return;
+        }
+        
+        ajaxRequestPending = true;
+        $.ajax({
+            type: "POST",
+            url: ajax_object.ajax_url,
+            data: data,
+            //dataType: 'JSON',
+            success: function(retorno) {
+                var objRetorno = $.parseJSON(retorno);
+                if (objRetorno.erro == '')
+                {
+                    updatePlacar(parseInt(objRetorno.propostas));
+                    updateParticipacaoMunicipios(objRetorno.municipios,
+                                                 objRetorno.outras_microrregioes);
+                    updateDesafiosMaisDestacados (objRetorno.top3_desafios);
+                    updateDestaquesPorAreasResultado (objRetorno.areas_resultado);
+                    updatePropostas (objRetorno.random2propostas);
+                    updateIntervals(objRetorno.intervalo_atualizacao, objRetorno.duracao_pagina);
+                }
+                else
+                {
+                    console.log(objRetorno.erro);
+                }
+                ajaxRequestPending = false;
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(textStatus);
+                ajaxRequestPending = false;
+            } 
+        });
+    };
+    
+    var updatePlacar = function(totalPropostas){
+        
+        $('div.total-de-Propostas').changeWithEffect(totalPropostas);
+        
+    };
+    var updateParticipacaoMunicipios = function(municipios, outras_microrregioes ){
+        var $municipioAtual;
+        var $valorAtual;
+        var iValorAtual;
+        var totalMunicipiosPresentes = 0;
+        var totalParticipantesPresentes = parseInt(outras_microrregioes);
+        municipios.forEach(function(municipio, indice){
+            totalMunicipiosPresentes += (municipio[1] > 0) ? 1 : 0 ;
+            totalParticipantesPresentes += parseInt(municipio[1]);
+            $municipioAtual = $('div.municipio[data-municipio-indice="' 
+                                + indice 
+                                + '"]');
+            $valorAtual = $municipioAtual.find('.valor');
+            iValorAtual = parseInt($valorAtual.html());
+            // Só faremos alguma coisa se temos um novo valor
+            if (iValorAtual != municipio[1])
+            {
+                // Se abriu o placar do município (valor atual é zero),
+                // temos que exibir em cor e negrito
+                if (iValorAtual == 0)
+                {
+                    // adicionar efeito
+                    $municipioAtual.addClass('comparticipacao');
+                }
+                $valorAtual.changeWithEffect(municipio[1]);
+            }
+        });
+        
+        // Atualiza linha de municípios de outras microrregiões
+        $('div.municipio.outras-microrregioes')
+                .find('.valor')
+                .html(outras_microrregioes);
+        
+        // Atualiza o placar municipios e participantes presentes
+        $('div.total-de-municipios-presentes').changeWithEffect(totalMunicipiosPresentes);
+        $('div.total-de-participantes').changeWithEffect(totalParticipantesPresentes);
+        
+    };
+    
+    var updateDestaquesPorAreasResultado = function(areasResultado){
+        var $valorAtual;
+        var $percentAtual;
+        var $arAtual;
+        var iValorAtual;
+        var dPercentAtual;
+        var $nomeAtual;
+        var iTotalDestaques = 0;
+        areasResultado.forEach(function(ar, indice){
+            iTotalDestaques += parseInt(ar.quantidade);
+            $arAtual = $('div.area-resultado[data-ar-indice="' 
+                                + indice 
+                                + '"]');
+            $valorAtual = $arAtual.find('div.valor');
+            $percentAtual = $arAtual.find('div.percent');
+            $nomeAtual = $arAtual.find('div.barra');
+            $tdAtual = $arAtual.find('td.td-area-resultado');
+            
+            $nomeAtual.html(ar.tema);
+            $valorAtual.changeWithEffect(ar.quantidade);
+            $percentAtual.html(ar.percent);
+            $tdAtual
+                .css('background', 
+                    'linear-gradient(90deg, #FDD2DA ' 
+                +   ar.percent
+                +   '%, #FFFFFF 0%');
+        });
+
+        
+        // Atualiza o placar de destaques
+        $('div.total-de-Destaques').changeWithEffect(iTotalDestaques);
+        
+    };
+    
+    var updateDesafiosMaisDestacados = function(desafios){
+        var $desafioAtual;
+        var $valorAtual;
+        var $percentAtual;
+        var $nomeAtual;
+        var $tdAtual;
+        var $arAtual;
+        desafios.forEach(function(desafio, indice){
+            $desafioAtual = $('div.desafio[data-desafio-indice="' 
+                                + indice 
+                                + '"]');
+            $valorAtual = $desafioAtual.find('div.valor');
+            $percentAtual = $desafioAtual.find('div.percent');
+            $nomeAtual = $desafioAtual.find('div.barra');
+            $tdAtual = $desafioAtual.find('td.td-desafio');
+            $arAtual = $desafioAtual.find('div.ar-do-desafio');
+            
+            $nomeAtual.html(desafio.desafio);
+            $valorAtual.changeWithEffect(desafio.quantidade);
+            $percentAtual.html(desafio.percent);
+            $arAtual.html(desafio.tema);
+            $tdAtual
+                .css('background', 
+                    'linear-gradient(90deg, #FDD2DA ' 
+                +   desafio.percent
+                +   '%, #FFFFFF 0%');
+        });
+    };
+    
+    var updatePropostas = function(random2propostas){
+        // não posso atualizar se a página estiver visível
+        if ($('div.pagina-2-propostas-aleatoreas').is(":visible")){
+            return 0;
+        }
+
+        var $propostaAtual;
+        var $textoAtual;
+        var $desafioAtual;
+        var $microrregiaoAtual;
+        random2propostas.forEach(function(proposta, indice){
+            $propostaAtual = $('div.proposta[data-proposta-indice="' 
+                                + indice 
+                                + '"]');
+            $textoAtual = $propostaAtual.find('td.td-texto-proposta');
+            $desafioAtual = $propostaAtual.find('span.titulo-desafio');
+            $microrregiaoAtual = $propostaAtual.find('span.titulo-microrregiao');
+            
+            $textoAtual.html(proposta.proposta);
+            $desafioAtual.html(proposta.desafio);
+            $microrregiaoAtual.html(proposta.microrregiao);
+        });
+    };
+    
+    var updateIntervals = function(updateTime, pageTime){
+        updateTime = updateTime * 1000;
+        pageTime = pageTime * 1000;
+        if ((!isNaN(updateTime)) && (updateTime > 0) && (ajaxInterval != updateTime))
+        {
+            ajaxInterval = updateTime;
+            clearInterval(temporizadorUpdates);
+            temporizadorUpdates = setInterval(getAllPanelDataAJAX, ajaxInterval);
+        }
+        if (!(isNaN(pageTime)) && (pageTime > 0) && (pageInterval != pageTime))
+        {
+            pageInterval = pageTime;
+            clearInterval(temporizadorPaginas);
+            temporizadorPaginas = setInterval(trocarPagina, pageInterval, $paginas);
+        }
+    };
+    
+    var temporizadorPaginas = setInterval(trocarPagina, pageInterval, $paginas);
+    var temporizadorUpdates = setInterval(getAllPanelDataAJAX, ajaxInterval);    
+
+    // Responde ao click no header para parar/continua slide show
+    $('div.header').click(function () {
+        if (temporizadorPaginas == 0)
+        {
+            temporizadorPaginas = setInterval(trocarPagina, pageInterval, $paginas);
+            //temporizadorUpdates = setInterval(getAllPanelDataAJAX, ajaxInterval);
+        }
+        else
+        {
+            clearInterval(temporizadorPaginas);
+            //clearInterval(temporizadorUpdates);
+            temporizadorPaginas = 0;
+        }
+    });
+    
+    // Método jquery personalizado (plugin) para atualizar o texto do elemento 
+    // com efeito
+    $.fn.changeWithEffect = function(newValue) {
+        // Tempo de duração da animação, em milisegundos
+        var speed = 400; 
+        
+        // Cor de highlight
+        var highlightColor = ($(this).css("color") == "rgb(255, 255, 255)") 
+                                ? "#fffff" 
+                                : "#e73279";
+        
+        // Cor "apagada"
+        var grayColor = ($(this).css("color") == "rgb(255, 255, 255)") 
+                                ? "#ffffff" 
+                                : "#999";
+        
+        // Valor anterior convertido para inteiro
+        var oldValue = parseInt($(this).html());
+
+        // Novo valor convertido para inteiro
+        newValue = parseInt(newValue);
+        
+        //coeficiente de zoom a ser dado no número
+        var zoom = 2; 
+        
+        return $(this).each(function() {
+            // se os valores forem iguais, não faz nada
+            if (oldValue == newValue)
+                return;
+            
+            if ($(this).is(':animated'))
+                return;
+
+            // Tamanho original da fonte
+            var originalFontSize = $(this).css("font-size").match(/\d+/)[0];
+            // Tamanho da fonte crescida
+            var zoomedFontSize = originalFontSize * zoom;
+        
+            // Animação:
+            // FASE 01: Aumentar o font size e reduzir a opacidade  
+            $(this).animate(
+                {
+                    fontSize: zoomedFontSize,
+                    opacity: 0.1
+                },
+                {
+                    duration: speed,
+                    complete: function(){
+                        // Ao se completar a primeira animação (FASE 01),
+                        // efetuamos as alterações de cor e valor
+                        // 
+                        // FASE 02:
+                        // 
+                        // Só mudo para HIGHLIGHT se estiver transitando de 0 para maior que 0
+                        if ((oldValue == 0) && (newValue > 0))
+                        {
+                            $(this).css("color",highlightColor);
+                            $(this).css("font-weight","bold");
+                        }
+                        // Mudo para gray se estiver transitando de maior que 0 para 0
+                        if ((oldValue > 0) && (newValue == 0))
+                        {
+                            $(this).css("color",grayColor);
+                            $(this).css("font-weight","normal");
+                        }
+                        // Alterar o valor
+                        $(this).html(newValue);
+
+                        // Agora podemos proceder à treceira fase, que é retornar
+                        // ao tamanho original
+                        //
+                        // FASE 03:
+                        //
+                        $(this).animate(
+                            {
+                                fontSize: originalFontSize,
+                                opacity: 1
+                            },
+                            {
+                                duration: speed
+                            }
+                        );
+                    }
+                }
+            );
+        });
+    };
+
+    /*
+    $('div.valor').click(function () {
+        var oldValue = parseInt($(this).html());
+        var newValue = oldValue + 1;
+       $(this).changeWithEffect(newValue);
+    });
+    */
+});

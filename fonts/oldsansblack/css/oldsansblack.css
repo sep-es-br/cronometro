@@ -1,0 +1,13 @@
+@font-face {
+    font-family: 'Oldsansblack';
+    src: url('../fonts/oldsansblack-webfont.eot');
+    src: url('../fonts/oldsansblack-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/oldsansblack-webfont.woff2') format('woff2'),
+         url('../fonts/oldsansblack-webfont.woff') format('woff'),
+         url('../fonts/oldsansblack-webfont.ttf') format('truetype'),
+         url('../fonts/oldsansblack-webfont.svg#oldsansblack') format('svg');
+    font-weight: bold;
+    font-style: normal;
+
+}
+

@@ -1,0 +1,441 @@
+/**
+*     
+* PPA em Rede - ES
+*
+* Script for PPA em Rede - ES
+*
+* This script is applied to the
+* structure and the main components
+* about PPA em Rede - ES
+*
+* @project PPA em Rede - ES
+* @version 1.0 2015-3-02
+* @since 1.0
+* @author Lucas Matias Caetano <lucas.caetano@prodest.es.gov.br>
+* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+*
+*/
+
++function ($) {
+
+
+
+/*========================================================
+* Functions for Mobile Device
+========================================================== */
+
+
+
+$(function () {
+	
+	var menuEntrar = "";
+	
+	if($('#site-navigation.menu .sub-menu').hasClass("sub-menu-mobile")==false){
+		$('#site-navigation.menu .sub-menu').addClass("sub-menu-mobile");
+	}	
+	
+	/* Disable Fixed Menu */
+	
+	$(window).bind("load", function() {
+	
+		menuEntrar = $('#site-navigation.menu .sub-menu-mobile').parent();
+		/*if($(window).width() < 991){
+			menuEntrar.unbind('mouseenter mouseleave');	
+		}*/
+	});
+	
+	$(window).bind("load resize", function() {
+		
+		
+		if($(window).width() < 991){
+			$(".top-bar").unstick();
+			$('#site-navigation.menu > #menu-menu-principal >   .menu-item-type-post_type:last-child').removeClass('welcome-button');
+			
+		}
+		else{
+			$(".top-bar").unstick();
+			$(".top-bar").sticky();
+			$('#site-navigation.menu > #menu-menu-principal >   .menu-item-type-post_type:last-child').removeClass('welcome-button')			
+			$('#site-navigation.menu > #menu-menu-principal >   .menu-item-type-post_type:last-child').addClass('welcome-button btn-entrar-header')
+			
+		}
+	});
+
+	/* Submenu Event */	
+	//console.log($('#site-navigation.menu .sub-menu-mobile').css("display"));
+	$($('#site-navigation.menu .sub-menu-mobile').parents().find('a')).click(function(){
+		var userSubMenu = $('#site-navigation.menu .sub-menu-mobile');
+		
+		if($(window).width() < 991 && $(this).closest("ul").hasClass("sub-menu-mobile")==false && $(this).closest("li").hasClass("menu-item-has-children")==true){
+			
+			display = userSubMenu.css("display")
+			//console.log("antes do toggle: "+display);
+			userSubMenu.toggle();
+			menuEntrar.toggleClass("active-submenu");
+			//console.log("depois do toggle: "+display);
+		}
+	});	
+	
+	
+});
+
+
+
+
+
+/*========================================================
+* Add Class animated buttons
+========================================================== */
+$(function () {
+	
+	$('#site-navigation.menu > #menu-menu-principal >   .menu-item-type-post_type:last-child').addClass('welcome-button')
+});
+
+
+/*========================================================
+* Service Icon Hover Effect
+========================================================== */
+$(function () {
+	
+	$('.services-area .service-title').each(function(){
+		var serviceTitleContainer = $(this);
+		var serviceTitle = $(this).find('a');
+		var serviceIcon = serviceTitleContainer.parents(".service").find(".service-icon");
+		
+		serviceTitle.mouseenter(function() {
+		  serviceIcon.css("background-color","#e73279");
+		});
+		serviceTitle.mouseleave(function() {
+		  serviceIcon.css("background-color","");
+		});		
+	
+	});
+});
+
+
+
+
+/*========================================================
+* Modal effect
+========================================================== */
+$(function () {
+
+	$(".service-compartilhe a").each(function(){
+		$(this).click(function(){
+			$('#modalCompartilhe').modal('show');
+		});
+	});
+	
+        $( "body" ).on( "click", ".compartilhar", function(){
+            $('#modalCompartilhe').modal('show');
+        });
+
+	$(".bbp-topic-modal").each(function(){
+			$(this).on('hidden.bs.modal', function (e) {
+			
+				$(this).find(".comment-status").html("");
+				$(this).find(".form-comment").removeClass("ocult");
+				$(this).find(".suggestions").removeClass("ocult");
+				$(this).find(".btn-fechar").remove();
+			  
+			})	
+	});
+	
+		
+	
+	
+});
+
+/*========================================================
+* Set Height Content for 100% in relation the page
+========================================================== */
+$(function () {
+	
+	/*ajusta a altura da pagina de acordo com a altura da janela*/
+
+	function resize_height_content() {
+		var dif_height = $(window).height() - $("body").height();
+		var height = dif_height + $("#content").outerHeight();
+		$("#content").css("min-height", height);
+		
+	}
+	
+	resize_height_content();
+	$(window).scroll(resize_height_content);
+	$(window).resize(resize_height_content);
+	$(window).load(resize_height_content);
+	
+	
+});
+
+
+/*========================================================
+* Element with the max height from a set of elements
+========================================================== */
+
+$(function () {
+
+	
+	resize_equals_height_content();
+	$(window).scroll(resize_equals_height_content);
+	$(window).resize(resize_equals_height_content);
+	$(window).load(resize_equals_height_content);
+
+
+	function resize_equals_height_content() {
+	
+		var maxHeight = $(".equal-height").height();
+		var flag = false;
+		$(".equal-height").each(function(){
+
+			if($(this).height()!=maxHeight){
+				flag = true;
+				if($(this).height()>maxHeight){			
+					maxHeight = $(this).height();
+					
+				}			
+			
+			}
+
+		});
+		if(flag){
+			$(".equal-height").each(function(){
+				$(this).height(maxHeight);
+			});				
+		}
+
+	}
+
+	
+});
+
+
+
+
+
+
+
+/*========================================================
+* Oneall Social Login
+========================================================== */
+$(function () {
+			
+    var i = setInterval(function ()
+    {
+		$(".oneall_social_login_providers iframe").css("width","");
+			
+    }, 100);		
+	
+});
+
+
+/*========================================================
+* Register Form
+========================================================== */
+$(function () {
+	
+	/*Change Microrregiao Automatic*/
+	$( "select#user_municipio, select#cadastro_user_municipio" ).change(function() {
+		
+		$( "select#user_municipio option:selected, select#cadastro_user_municipio option:selected" ).each(function() {
+			$("#user_microrregiao").val($( this ).data("microrregiao"));	  
+		});
+	});		
+	
+});
+
+
+
+/*========================================================
+* Collapse Click
+========================================================== */
+$(function () {
+
+    
+$(".collapse-button").each(function(){
+    $(this).click(function(){
+		$(this).find('.fa-plus').toggleClass('fa-minus');
+        $($(this).data('collapse')).toggle( 'in' );
+
+		if($(this).find('span').text()=="Ver"){
+			$(this).find('span').text("Esconder");
+		}
+		else{
+			$(this).find('span').text("Ver");
+		}
+    });		
+});    
+    
+
+	
+});
+
+
+/*========================================================
+*Scroll Up
+========================================================== */
+
+$(function () {
+
+	$.scrollUp({
+		scrollName: 'scrollUp',      // Element ID
+		scrollDistance: 30,         // Distance from top/bottom before showing element (px)
+		scrollFrom: 'top',           // 'top' or 'bottom'
+		scrollSpeed: 300,            // Speed back to top (ms)
+		easingType: 'linear',        // Scroll to top easing (see http://easings.net/)
+		animation: 'fade',           // Fade, slide, none
+		animationSpeed: 200,         // Animation speed (ms)
+		scrollTrigger: false,        // Set a custom triggering element. Can be an HTML string or jQuery object
+		scrollTarget: false,         // Set a custom target element for scrolling to. Can be element or number
+		scrollText: '<i class="fa fa-chevron-up"></i>', // Text for element, can contain HTML
+		scrollTitle: 'Ir para o Topo',          // Set a custom <a> title if required.
+		scrollImg: false,            // Set true to use image
+		activeOverlay: false,        // Set CSS color to display scrollUp active point, e.g '#00FFFF'
+		zIndex: 2147483647           // Z-Index for the overlay
+	});
+
+});
+
+
+/*========================================================
+* Corrige bug IE.
+========================================================== */
+$(function () {
+    /*Corrige um BUG: O IE nao reconhece o attr "placeholder", o codigo abaixo corrige esse erro */
+
+    function add() { if ($(this).val() == '') { $(this).val($(this).attr('placeholder')).addClass('placeholder'); } }
+    function remove() { if ($(this).val() == $(this).attr('placeholder')) { $(this).val('').removeClass('placeholder'); } }
+    if (!('placeholder' in $('<input>')[0])) { // Create a dummy element for feature detection
+        $('input[placeholder], textarea[placeholder]').blur(add).focus(remove).each(add); // Select the elements that have a placeholder attribute
+        $('form').submit(function () { $(this).find('input[placeholder], textarea[placeholder]').each(remove); }); // Remove the placeholder text before the form is submitted
+    }
+});
+/*========================================================
+* end Corrige bug IE.
+========================================================== */
+
+/*========================================================
+* Filter List Testimonials
+========================================================== */
+$(function () {
+
+
+
+    /*Clona todos os desafios e testiminials*/
+    var htmlListDesafio = $( "#filtro_desafio" ).clone();
+	var htmlListTestimonials = $( "#list-testimonials" ).clone();
+
+
+    function filtrarLista(element,filter){
+          
+	/*reset list desafio*/
+        element.find(".list-item").each(function(){
+            $(this).show();
+        });         
+          
+        element.find(".list-item").each(function(){
+
+            if($(this).data("microrregiao")!== filter["microrregiao"] && filter["microrregiao"]!=="todos"){   $(this).hide();  }
+            else{                 
+                  if($(this).data("tema")!== filter["tema"] && filter["tema"]!=="todos"){  $(this).hide(); }
+                  else{                       
+                      if($(this).data("desafio")!== filter["desafio"] && filter["desafio"]!=="todos"){ $(this).hide();  }
+
+                  }                
+            }
+
+        });
+         
+          
+          
+    }
+
+    
+    /*Filtro por Microrregiao*/
+    $( "#filtro_microrregiao" ).change(function() {
+        var str = [];
+        $( "select option:selected" ).each(function() {
+          str[$(this).data("key")] = $( this ).val();
+        });
+        
+        filtrarLista($("#list-testimonials"),str);
+        
+    });   
+    
+    /*Filtro por Tema*/
+    $( "#filtro_tema" ).change(function() {
+        var str = [];
+        
+        /*reset list desafio*/
+        $( "#filtro_desafio" ).html(htmlListDesafio.html());
+        
+        $( "select option:selected" ).each(function() {
+          str[$(this).data("key")] = $( this ).val();
+        });
+        
+        /*Exclui os desafios que nao pertencem ao tema selecionado*/
+        $( "#filtro_desafio option" ).each(function(){
+            if($(this).data("tema")!== str["tema"] && $(this).data("desafio") !== "todos"  &&  str["tema"]!== "todos" ){
+               
+                $(this).remove();
+            }  
+        });
+        
+        filtrarLista($("#list-testimonials"),str);
+       
+    });   
+    
+    /*Filtro por Desafio*/
+    $( "#filtro_desafio" ).change(function() {
+        var str = [];
+        $( "select option:selected" ).each(function() {
+          str[$(this).data("key")] = $( this ).val();
+        });
+        
+        filtrarLista($("#list-testimonials"),str);
+        
+    });       
+    
+    
+    
+    
+
+});
+/*========================================================
+* end Filter List Testimonials
+========================================================== */
+
+
+/*========================================================
+* Check presence modal
+========================================================== */
+$(function () {
+    $('#check-presenca-modal').modal('show');
+    
+});
+/*========================================================
+* End check presence modal
+========================================================== */
+
+/*========================================================
+* PÁGINA DE LOGIN
+========================================================== */
+$(function () {
+    $('.quero-me-cadastrar').click(function(){
+        $('#pagLogin').hide();
+        $('#pagCadastro').show();
+    });
+    $('.quero-entrar').click(function(){
+        $('#pagCadastro').hide();
+        $('#pagLogin').show();
+    });
+    
+});
+/*========================================================
+* End PÁGINA DE LOGIN
+========================================================== */
+
+
+	
+
+}(jQuery);
